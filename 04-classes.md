@@ -83,6 +83,8 @@ A more involved class hierarchy could include a polymorphic base class and overr
 
 namespace nb = nanobind;
 
+namespace test9 {
+
 struct Pet {
     Pet(const std::string &name, int age) : name{ name }, age{ age } {}
 
@@ -106,26 +108,29 @@ struct Cat : Pet {
     virtual std::string sound() const override { return name + ": miaow!"; }
 };
 
+}
+
 NB_MODULE(test9, m) {
-    nb::class_<Pet>(m, "Pet")
-        .def("set", nb::overload_cast<int>(&Pet::set), "Set the pet's age")
-        .def("set", nb::overload_cast<const std::string &>(&Pet::set), "Set the pet's name")
-        .def("sound", &Pet::sound, "Pet makes a sound")
-        .def_ro("name", &Pet::name, "Pet's name as a string")
-        .def_ro("age", &Pet::age, "Pet's age in years as an integer");
+    nb::class_<test9::Pet>(m, "Pet")
+        .def("set", nb::overload_cast<int>(&test9::Pet::set), "Set the pet's age")
+        .def("set", nb::overload_cast<const std::string &>(&test9::Pet::set), "Set the pet's name")
+        .def("sound", &test9::Pet::sound, "Pet makes a sound")
+        .def_ro("name", &test9::Pet::name, "Pet's name as a string")
+        .def_ro("age", &test9::Pet::age, "Pet's age in years as an integer");
 
-    nb::class_<Dog, Pet /* <- C++ parent type */>(m, "Dog")
+    nb::class_<test9::Dog, test9::Pet /* <- C++ parent type */>(m, "Dog")
         .def(nb::init<const std::string &, int>());
 
-    nb::class_<Cat, Pet /* <- C++ parent type */>(m, "Cat")
+    nb::class_<test9::Cat, test9::Pet /* <- C++ parent type */>(m, "Cat")
         .def(nb::init<const std::string &, int>());
 
-    m.def("pet_store", []() { return (Pet *) new Dog{ "Molly", 2 }; });
+    m.def("pet_store", []() { return (test9::Pet *) new test9::Dog{ "Molly", 2 }; });
 }
 ```
 
 A lot of changes to make this class hierarchy correct for Python:
 
+* Use of a new namespace `test9` to avoid clashes with previously defined `Pet`, `Dog`, and `Cat` classes
 * Constructors for the newly virtual `Pet`, `Dog`, and `Cat` classes
 * Bindings for member functions are only provided for `Pet` (other than there being no `init` function defined becuase it is pure virtual)
 * C++/Python member function `set()` is overloaded for strings and integers
