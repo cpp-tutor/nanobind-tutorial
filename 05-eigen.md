@@ -62,7 +62,7 @@ eigen1.inspect(np.array([[1,2,3], [3,4,5]], dtype=np.float32))
 
 Comparing the output with the definition of the function `inspect()` previously will give a good idea of the purpose of `nb::ndarray`. See the documentation for further details on how to create `np.array`s (and other Python libraries' types) objects from C++, and how to specify shape, strides etc. dynamically.
 
-## Matrix operations with Eigen
+## Vector operations with Eigen
 
 Use of the Eigen library with **nanobind** can be thought of as a specialization of using the `nb::ndarray` class. The header `<nanobind/eigen/dense.h>` provides for conversions between Python and C++ (both ways) for types: `Eigen::Matrix`, `Eigen::Array`, `Eigen::Vector`, `Eigen::Ref`, `Eigen::Map`.
 
@@ -80,7 +80,6 @@ Firstly, `a` and `b` are accepted by value (although see previous discussion of 
 
 ```cpp
 // eigen2.cpp
-%%writefile eigen2.cpp
 #include <nanobind/eigen/dense.h>
 
 namespace nb = nanobind;
@@ -106,9 +105,68 @@ Try it out in Python:
 import numpy as np
 import eigen2
 
-print(eigen2.sum(np.array([1., 2., 3.], dtype='float32'),np.array([2., 3., 4.], dtype='float32')))
+print(eigen2.sum(np.array([1., 2., 3.], dtype='float32'), np.array([2., 3., 4.], dtype='float32')))
 ```
 
 If you get into difficulties with types, recall that by value implies possible type conversion. Use code such as `nb::arg("x").noconvert()` to avoid this.
+
+## Matrix operations with Eigen
+
+For a more complete treatment of Eigen's types we can extend the available functions with matrix types and operations such as `addV`, `mulM` etc., defining all Python symbols with C++ lambda functions:
+
+```cpp
+// eigen3.cpp
+#include <nanobind/eigen/dense.h>
+#include <Eigen/LU>
+
+namespace nb = nanobind;
+using dtype = double;
+using Vector = Eigen::VectorXd;
+using Matrix = Eigen::MatrixXd;
+
+NB_MODULE(eigen3, m) {
+    m.def("addV", [](const nb::DRef<Vector> &a, const nb::DRef<Vector> &b) -> Vector { return a + b; });
+    m.def("addM", [](const nb::DRef<Matrix> &a, const nb::DRef<Matrix> &b) -> Matrix { return a + b; });
+    m.def("subV", [](const nb::DRef<Vector> &a, const nb::DRef<Vector> &b) -> Vector { return a + b; });
+    m.def("subM", [](const nb::DRef<Matrix> &a, const nb::DRef<Matrix> &b) -> Matrix { return a + b; });
+    m.def("inner", [](const nb::DRef<Vector> &a, const nb::DRef<Vector> &b) -> dtype { return a.dot(b); });
+    m.def("cross", [](const nb::DRef<Vector> &a, const nb::DRef<Vector> &b) -> Vector { return a * b; });
+    m.def("mulM", [](const nb::DRef<Matrix> &a, const nb::DRef<Matrix> &b) -> Matrix { return a * b; });
+    m.def("mulMV", [](const nb::DRef<Matrix> &a, const nb::DRef<Vector> &b) -> Matrix { return a * b; });
+    m.def("det", [](const nb::DRef<Matrix> &a) -> dtype { return a.determinant(); });
+    m.def("inv", [](const nb::DRef<Matrix> &a) -> Matrix { return a.inverse(); });
+}
+```
+
+Build the right target with CMake:
+
+```bash
+cmake --build build --target eigen3
+```
+
+Try it out again in Python:
+
+```python
+import numpy as np
+import eigen3
+
+vector1 = np.array([1., 2., 3.])
+vector2 = np.array([2., 3., 4.])
+matrix1 = np.array([[1., 2., 3.], [4., 5., 6]])
+matrix2 = np.array([[2., 3., 4.], [5., 6., 7]])
+
+print(eigen3.addV(vector1, vector2))
+print(eigen3.addM(matrix1, matrix2))
+print(eigen3.subV(vector1, vector2))
+print(eigen3.subM(matrix1, matrix2))
+print(eigen3.mulM(matrix1, matrix2))
+print(eigen3.mulMV(matrix1, vector1))
+print(eigen3.inner(vector1, vector2))
+print(eigen3.cross(vector1, vector2))
+print(eigen3.det(matrix1))
+print(eigen3.inv(matrix2))
+```
+
+The header `<nanobind/eigen/sparse.h>` maps the types `Eigen::SparseMatrix<..>` and `Eigen::Map<Eigen::SparseMatrix<..>>` either `scipy.sparse.csr_matrix` (row-major stprage) or `scipy.sparse.csc_matrix` (column-major storage), via custom bindings.
 
 *All text and program code &copy;2026 Richard Spencer, all rights reserved.*

@@ -60,7 +60,9 @@ nanobind_add_module(test8 test8.cpp)
 nanobind_add_module(test9 test9.cpp)
 nanobind_add_module(eigen1 eigen1.cpp)
 nanobind_add_module(eigen2 eigen2.cpp)
-target_include_directories(eigen2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/build/eigen-3.3.1/include)
+target_include_directories(eigen2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/eigen-3.3.1/include)
+nanobind_add_module(eigen3 eigen3.cpp)
+target_include_directories(eigen3 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/eigen-3.3.1/include)
 ```
 
 Each new `.cpp` source file needs to be referenced with `nanobind_add_module(my_module my_module.cpp)`, creating a dynamic library (`.so` under Linux) from it which can be loaded at run-time with Python's `import` command.
@@ -68,7 +70,7 @@ Each new `.cpp` source file needs to be referenced with `nanobind_add_module(my_
 To run CMake with this file, it expects that these `.cpp` files all exist, so we'll go ahead and create these as empty files (if necessary):
 
 ```bash
-touch test1.cpp test2.cpp test3.cpp test4.cpp test5.cpp test6.cpp test7.cpp test8.cpp test9.cpp eigen1.cpp eigen2.cpp
+touch test1.cpp test2.cpp test3.cpp test4.cpp test5.cpp test6.cpp test7.cpp test8.cpp test9.cpp eigen1.cpp eigen2.cpp eigen3.cpp
 ```
 
 Now we can configure the project, with sources in the current directory and build files in sub-directory `build`:
