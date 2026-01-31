@@ -60,9 +60,9 @@ nanobind_add_module(test8 test8.cpp)
 nanobind_add_module(test9 test9.cpp)
 nanobind_add_module(eigen1 eigen1.cpp)
 nanobind_add_module(eigen2 eigen2.cpp)
-target_include_directories(eigen2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/eigen-3.3.1/include)
+target_include_directories(eigen2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 nanobind_add_module(eigen3 eigen3.cpp)
-target_include_directories(eigen3 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/eigen-3.3.1/include)
+target_include_directories(eigen3 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 ```
 
 Each new `.cpp` source file needs to be referenced with `nanobind_add_module(my_module my_module.cpp)`, creating a dynamic library (`.so` under Linux) from it which can be loaded at run-time with Python's `import` command.
@@ -150,7 +150,7 @@ ls eigen-3.3.1 || git clone https://gitlab.com/libeigen/eigen.git --branch 3.3.1
 Then, to configure the library (which is header-only) and set the install directory as `eigen-3.3.1/include` use:
 
 ```bash
-cmake -S eigen-3.3.1 -B eigen-3.3.1/build -DCMAKE_INSTALL_PREFIX=$PWD/eigen-3.3.1 -DINCLUDE_INSTALL_DIR=include
+cmake -S eigen-3.3.1 -B eigen-3.3.1/build -DCMAKE_INSTALL_PREFIX="$PWD/eigen-3.3.1" -DINCLUDE_INSTALL_DIR=include
 ```
 
 Finally, to create the header files as part of the overall build, and then to install them as per the `install` target use:
